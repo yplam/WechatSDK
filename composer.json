@@ -1,0 +1,27 @@
+{
+    "name": "yplam/WechatSDK",
+    "description": "Yet Another Wechat PHP SDK.",
+    "keywords": ["wechat"],
+    "homepage": "https://github.com/yplam/WechatSDK",
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "YPLam",
+            "email": "yplam@yplam.com",
+            "homepage": "http://yplam.com/"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.3",
+        "kriswallsmith/buzz": "~0.7",
+    },
+    "require-dev": {
+        "phpunit/phpunit": "3.7.*"
+    },
+    "autoload": {
+        "psr-4" : {
+            "YPL\\WechatSDK\\" : ""
+        }
+    }
+}
