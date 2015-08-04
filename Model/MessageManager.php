@@ -34,10 +34,17 @@ class MessageManager implements MessageManagerInterface
         if(empty($rawMessage['MsgType'])){
             return false;
         }
-        if(!in_array($rawMessage['MsgType'], array_keys($this->messageTypes))){
+        if($rawMessage['MsgType'] == 'event'){
+            $msgType = isset($rawMessage['Event']) ? $rawMessage['Event'] : 'event' ;
+        }
+        else{
+            $msgType = $rawMessage['MsgType'];
+        }
+
+        if(!in_array($msgType, array_keys($this->messageTypes))){
                 return false;
         }
-        $messageClass = $this->messageTypes[$rawMessage['MsgType']];
+        $messageClass = $this->messageTypes[$msgType];
         if(!class_exists($messageClass)){
             return false;
         }

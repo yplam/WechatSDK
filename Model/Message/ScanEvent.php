@@ -1,6 +1,6 @@
 <?php
 
-namespace YPL\WechatSDK\Model\Event;
+namespace YPL\WechatSDK\Model\Message;
 
 
 /**

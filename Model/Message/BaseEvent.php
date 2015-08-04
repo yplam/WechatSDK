@@ -1,6 +1,6 @@
 <?php
 
-namespace YPL\WechatSDK\Model\Event;
+namespace YPL\WechatSDK\Model\Message;
 
 use YPL\WechatSDK\Model\MessageInterface;
 /**
@@ -41,7 +41,7 @@ class BaseEvent implements MessageInterface
 
     public function validate()
     {
-        return !( $this->toUserName 
+        return !( $this->toUserName
             && $this->fromUserName
             && $this->createtime
             && $this->event
