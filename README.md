@@ -31,6 +31,11 @@ Yet Another WechatSDK !
         'token' => '%token%',
     ));
     
+    // 可选的redis缓存
+    $redis = new \Redis();
+    /* 一些配置... */
+    $wechat->setStorage($redis);
+    
     // 回复消息
     $rawMessage = $wechat->getRawMessage();
     $messageManager = new MessageManager();
