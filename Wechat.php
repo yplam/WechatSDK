@@ -20,6 +20,7 @@ use Buzz\Message\Response as HttpResponse;
 use Buzz\Message\Form\FormUpload;
 
 use YPL\WechatSDK\Event\MessageEvent;
+use YPL\WechatSDK\Exception\WechatException;
 
 class Wechat
 {
@@ -48,7 +49,7 @@ class Wechat
      * @var Array
      */
     protected $options;
-    
+
     /**
      * config $appid
      * @var string
@@ -76,7 +77,7 @@ class Wechat
      */
     protected $aesKey;
 
-    
+
 
     /**
      * @var Array raw message，解密出来的消息数组
@@ -140,7 +141,7 @@ class Wechat
 
     public function getRawMessage()
     {
-        $signature = isset($_GET['msg_signature']) ? $_GET['msg_signature'] 
+        $signature = isset($_GET['msg_signature']) ? $_GET['msg_signature']
             : ( isset($_GET['signature']) ? $_GET['signature'] : '');
         $timestamp = isset($_GET['timestamp']) ? $_GET['timestamp'] : '';
         $nonce = isset($_GET['nonce']) ? $_GET['nonce'] : '';
@@ -359,7 +360,7 @@ class Wechat
     /**
      * 获取菜单
      * @return string json菜单数据
-     * 
+     *
      * {"menu":{"button":[{"type":"click","name":"今日歌曲","key":"V1001_TODAY_MUSIC","sub_button":[]},{"type":"click","name":"歌手简介","key":"V1001_TODAY_SINGER","sub_button":[]},{"name":"菜单","sub_button":[{"type":"view","name":"搜索","url":"http://www.soso.com/","sub_button":[]},{"type":"view","name":"视频","url":"http://v.qq.com/","sub_button":[]},{"type":"click","name":"赞一下我们","key":"V1001_GOOD","sub_button":[]}]}]}}
      */
     public function getMenu()
@@ -375,7 +376,7 @@ class Wechat
      *
      * {
          "button":[
-             {  
+             {
                   "type":"click",
                   "name":"今日歌曲",
                   "key":"V1001_TODAY_MUSIC"
@@ -383,7 +384,7 @@ class Wechat
               {
                    "name":"菜单",
                    "sub_button":[
-                   {    
+                   {
                        "type":"view",
                        "name":"搜索",
                        "url":"http://www.soso.com/"
@@ -398,7 +399,7 @@ class Wechat
                        "name":"赞一下我们",
                        "key":"V1001_GOOD"
                     }]
-               }]   
+               }]
          }
      */
     public function setMenu($menu)
@@ -423,7 +424,7 @@ class Wechat
     }
 
     //// 临时素材接口
-    
+
     /**
      * 上传临时素材
      * @param  string $file        文件名
