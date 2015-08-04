@@ -36,7 +36,7 @@ class BaseEvent implements MessageInterface
         isset($rawMessage['ToUserName']) && $this->toUserName = $rawMessage['ToUserName'];
         isset($rawMessage['FromUserName']) && $this->fromUserName = $rawMessage['FromUserName'];
         isset($rawMessage['CreateTime']) && $this->createtime = (int)$rawMessage['CreateTime'];
-        isset($rawMessage['Event']) && $this->event = (int)$rawMessage['Event'];
+        isset($rawMessage['Event']) && $this->event = $rawMessage['Event'];
     }
 
     public function validate()
