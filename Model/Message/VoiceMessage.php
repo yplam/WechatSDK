@@ -36,6 +36,11 @@ class VoiceMessage extends BaseMessage
         isset($rawMessage['Recognition']) && $this->recognition = $rawMessage['Recognition'];
     }
 
+    public function validate()
+    {
+        return parent::validate() && $this->mediaId && $this->format;
+    }
+
     /**
      * Set mediaId
      *

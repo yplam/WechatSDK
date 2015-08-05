@@ -12,6 +12,5 @@ namespace YPL\WechatSDK\Model;
 interface MessageManagerInterface
 {
     public function createFromRawMessage(array $rawMessage);
-    public function validate($message);
+    public function validate(MessageInterface $message);
 }
-

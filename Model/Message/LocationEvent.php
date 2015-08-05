@@ -34,6 +34,11 @@ class LocationEvent extends BaseEvent
         isset($rawMessage['Precision']) && $this->precision = $rawMessage['Precision'];
     }
 
+    public function validate()
+    {
+        return parent::validate() && $this->latitude && $this->longitude && $this->precision;
+    }
+
     /**
      * Set latitude
      *

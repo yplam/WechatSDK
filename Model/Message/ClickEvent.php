@@ -22,6 +22,11 @@ class ClickEvent extends BaseEvent
         isset($rawMessage['EventKey']) && $this->eventKey = $rawMessage['EventKey'];
     }
 
+    public function validate()
+    {
+        return parent::validate() && $this->eventKey;
+    }
+
     /**
      * Set eventKey
      *

@@ -26,7 +26,10 @@ class VideoMessage extends BaseMessage
         isset($rawMessage['ThumbMediaId']) && $this->thumbMediaId = $rawMessage['ThumbMediaId'];
     }
 
-
+    public function validate()
+    {
+        return parent::validate() && $this->mediaId && $this->thumbMediaId;
+    }
 
     /**
      * Set mediaId

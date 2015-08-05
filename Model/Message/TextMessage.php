@@ -20,6 +20,12 @@ class TextMessage extends BaseMessage
         parent::__construct($rawMessage);
         isset($rawMessage['Content']) && $this->content = $rawMessage['Content'];
     }
+
+    public function validate()
+    {
+        return parent::validate() && $this->content;
+    }
+    
     /**
      * Set content
      *

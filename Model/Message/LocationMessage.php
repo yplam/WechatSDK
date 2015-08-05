@@ -40,6 +40,11 @@ class LocationMessage extends BaseMessage
         isset($rawMessage['Label']) && $this->label = $rawMessage['Label'];
     }
 
+    public function validate()
+    {
+        return parent::validate() && $this->locationX && $this->locationY && $this->scale && $this->label;
+    }
+
     /**
      * Set locationX
      *

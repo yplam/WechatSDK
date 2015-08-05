@@ -29,6 +29,11 @@ class SubscribeEvent extends BaseEvent
         isset($rawMessage['Ticket']) && $this->ticket = $rawMessage['Ticket'];
     }
 
+    public function validate()
+    {
+        return parent::validate() && $this->eventKey;
+    }
+
     /**
      * Set eventKey
      *

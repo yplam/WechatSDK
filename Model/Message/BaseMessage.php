@@ -40,7 +40,7 @@ class BaseMessage implements MessageInterface
 
     public function validate()
     {
-        return !( $this->toUserName 
+        return ( $this->toUserName 
             && $this->fromUserName
             && $this->createtime
             && $this->msgId

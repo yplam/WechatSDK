@@ -33,6 +33,11 @@ class LinkMessage extends BaseMessage
         isset($rawMessage['Url']) && $this->url = $rawMessage['Url'];
     }
 
+    public function validate()
+    {
+        return parent::validate() && $this->title && $this->description && $this->url;
+    }
+
 
     /**
      * Set title
