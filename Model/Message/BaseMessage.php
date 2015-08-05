@@ -30,12 +30,18 @@ class BaseMessage implements MessageInterface
      */
     private $msgId;
 
+    /**
+     * @var string
+     */
+    private $msgType;
+
     public function __construct(array $rawMessage = array())
     {
         isset($rawMessage['ToUserName']) && $this->toUserName = $rawMessage['ToUserName'];
         isset($rawMessage['FromUserName']) && $this->fromUserName = $rawMessage['FromUserName'];
         isset($rawMessage['CreateTime']) && $this->createtime = (int)$rawMessage['CreateTime'];
         isset($rawMessage['MsgId']) && $this->msgId = $rawMessage['MsgId'];
+        isset($rawMessage['MsgType']) && $this->msgType = $rawMessage['MsgType'];
     }
 
     public function validate()
@@ -44,6 +50,7 @@ class BaseMessage implements MessageInterface
             && $this->fromUserName
             && $this->createtime
             && $this->msgId
+            && $this->msgType
         );
     }
 
@@ -137,5 +144,15 @@ class BaseMessage implements MessageInterface
     public function getMsgId()
     {
         return $this->msgId;
+    }
+
+    /**
+     * Get msgType
+     *
+     * @return string
+     */
+    public function getMsgType()
+    {
+        return $this->msgType;
     }
 }
