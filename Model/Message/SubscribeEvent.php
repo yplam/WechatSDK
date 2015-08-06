@@ -25,13 +25,13 @@ class SubscribeEvent extends BaseEvent
     public function __construct(array $rawMessage = array())
     {
         parent::__construct($rawMessage);
-        isset($rawMessage['EventKey']) && $this->eventKey = $rawMessage['EventKey'];
-        isset($rawMessage['Ticket']) && $this->ticket = $rawMessage['Ticket'];
+        isset($rawMessage['EventKey']) && $this->eventKey = (string)$rawMessage['EventKey'];
+        isset($rawMessage['Ticket']) && $this->ticket = (string)$rawMessage['Ticket'];
     }
 
     public function validate()
     {
-        return parent::validate() && $this->eventKey;
+        return parent::validate();
     }
 
     /**

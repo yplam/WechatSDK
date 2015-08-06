@@ -530,5 +530,16 @@ class Wechat
         return $result;
     }
 
+    // 获取用户信息
+    public function getUserInfo($openid, $lang='zh_CN')
+    {
+        $response = $this->request(self::API_URL . '/user/info', array(
+            'lang'=>$lang,
+            'openid' => $openid,
+            ));
+        $result = $this->getResponseContent($response);
+        return $result;
+    }
+
 }
 
