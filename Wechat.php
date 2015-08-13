@@ -156,9 +156,10 @@ class Wechat
                 throw new WechatException('no_message_receive');
             }
 
-            if(isset($this->rawMessage['Encrypt'])){
+            if(isset($rawMessage['Encrypt'])){
                 $this->encryptType = 'aes';
-                $encryptStr = $this->rawMessage['Encrypt'];
+                $encryptStr = $rawMessage['Encrypt'];
+
                 $pc = new Prpcrypt($this->aesKey);
                 $result = $pc->decrypt($encryptStr,$this->appid);
                 if (!isset($result[0]) || ($result[0] != 0)) {
