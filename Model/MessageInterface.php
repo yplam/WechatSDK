@@ -12,5 +12,7 @@ namespace YPL\WechatSDK\Model;
 interface MessageInterface
 {
     public function validate();
+    public function getFromUserName();
+    public function getToUserName();
 }
 
