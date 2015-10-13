@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<phpunit colors="true" bootstrap="../../autoload.php" >
+    <testsuites>
+        <testsuite name="WechatSDK Test Suite">
+            <directory suffix="Test.php">./Tests/</directory>
+        </testsuite>
+    </testsuites>
+    <filter>
+        <whitelist>
+            <directory suffix=".php">src</directory>
+        </whitelist>
+    </filter>
+    <php>
+        <var name="appid" value="" />
+        <var name="appsecret" value="" />
+        <var name="token" value="" />
+    </php>
+</phpunit>
+

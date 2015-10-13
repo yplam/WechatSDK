@@ -11,13 +11,9 @@
 
 namespace YPL\WechatSDK;
 
-use Buzz\Client\ClientInterface as HttpClientInterface;
-use Buzz\Message\MessageInterface as HttpMessageInterface;
-use Buzz\Message\Request as HttpRequest;
-use Buzz\Message\Form\FormRequest;
-use Buzz\Message\RequestInterface as HttpRequestInterface;
-use Buzz\Message\Response as HttpResponse;
-use Buzz\Message\Form\FormUpload;
+use GuzzleHttp\Client;
+use Psr\Http\Message\RequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 use YPL\WechatSDK\Event\MessageEvent;
 use YPL\WechatSDK\Exception\WechatException;
@@ -93,7 +89,7 @@ class Wechat
     protected $httpClient;
 
 
-    public function __construct(HttpClientInterface $httpClient, array $options)
+    public function __construct(Client $httpClient, array $options)
     {
         $this->options = $options;
         $this->httpClient = $httpClient;
@@ -125,19 +121,83 @@ class Wechat
         if($this->storage && $access_token = $this->storage->get($key)){
             return $access_token;
         }
-        $response = $this->httpRequest($this->normalizeUrl(self::API_URL.'/token', array(
-            'grant_type'=>'client_credential',
-            'appid' => $this->appid,
-            'secret' => $this->appsecret,
-        )));
+
+        // 没有使用cache，但是已经请求过access_token，返回此次运行环境中的缓存
+        if($this->accessToken){
+            return $this->accessToken;
+        }
+        
+        $response = $this->httpClient->request('GET', self::API_URL.'/token', [
+            'query' => [
+                'grant_type' => 'client_credential',
+                'appid' => $this->appid,
+                'secret' => $this->appsecret,
+            ]
+        ]);
+
         $token = $this->getResponseContent($response);
+
         if(!isset($token['access_token'])){
             throw new WechatException('get_access_token_error');
         }
+
+        // 就算没有使用外部cache，我们也应该将access_token保存在context中
+        $this->accessToken = $token['access_token'];
+
+
         // 超时时间减100秒，防止因获取消息的延迟而导致服务端先过期
         $this->storage && $this->storage->set($key, $token['access_token'], (int)$token['expires_in'] - 100);
         return $token['access_token'];
     }
+
+    /**
+     * 请求封装，返回response
+     * @param  string $url     请求地址
+     * @param  array  $query   请求url参数
+     * @param  string $content post内容，可以是form，也可以时raw
+     * @param  array  $headers header
+     * @param  string $method  GET 或 POST
+     * @return array    
+     */
+    public function rawRequest($url, $query = array(), $content = null, $files = array(), $method = null)
+    {
+        if (null === $method) {
+            $method = ($content || $files ) ? 'POST' : 'GET';
+        }
+        if( !isset($query['access_token']) ){
+            $query['access_token'] = $this->getAccessToken();
+        }
+        $data = array();
+        $data['query'] = $query;
+        if($content){
+            if(is_array($content)){
+                $data['form_params'] = $content;
+            }
+            else{
+                $data['body'] = $content;
+            }
+        }
+        if($files){
+            $data['multipart'] = $files;
+        }
+        return $this->httpClient->request($method, $url, $data);
+    }
+
+    /**
+     * 请求封装，返回json_decode后的值
+     * @param  string $url     请求地址
+     * @param  array  $query   请求url参数
+     * @param  string $content post内容
+     * @param  array  $headers header
+     * @param  string $method  GET 或 POST
+     * @return ResponseInterface  
+     */
+    public function request($url, $query = array(), $content = null, $files = array(), $method = null)
+    {
+        $response = $this->rawRequest($url, $query, $content, $files, $method);
+        return $this->getResponseContent($response);
+    }
+
 
     public function getRawMessage()
     {
@@ -187,84 +247,7 @@ class Wechat
         return $rawMessage;
     }
 
-    public function request($url, $params = array(), $content = null, $headers = array(), $method = null)
-    {
-        $params['access_token'] = $this->getAccessToken();
-        $url = $this->normalizeUrl($url,$params);
-        return $this->httpRequest($url, $content, $headers, $method);
-    }
-
-
-    public function upload($url, $params = array(), $fields)
-    {
-        $params['access_token'] = $this->getAccessToken();
-        $url = $this->normalizeUrl($url,$params);
-        return $this->uploadRequest($url, $fields);
-    }
-
-    /**
-     * 发送HTTP请求
-     *
-     * @return HttpResponse The response content
-     */
-    public function uploadRequest($url, $fields)
-    {
-        $request  = new FormRequest(HttpRequestInterface::METHOD_POST, $url);
-        $response = new HttpResponse();
-        $headers = array(
-            'User-Agent: YPLWechatSDK',
-        );
-        $request->setHeaders($headers);
-        $request->setFields($fields);
-        $this->httpClient->send($request, $response);
-        return $response;
-    }
-
-    /**
-     * 发送HTTP请求
-     *
-     * @return HttpResponse The response content
-     */
-    public function httpRequest($url, $content = null, $headers = array(), $method = null)
-    {
-        if (null === $method) {
-            $method = null === $content ? HttpRequestInterface::METHOD_GET : HttpRequestInterface::METHOD_POST;
-        }
-        $request  = new HttpRequest($method, $url);
-        $response = new HttpResponse();
-        $contentLength = 0;
-        if (is_string($content)) {
-            $contentLength = strlen($content);
-        } elseif (is_array($content)) {
-            $contentLength = strlen(implode('', $content));
-        }
-        $headers = array_merge(
-            array(
-                'User-Agent: YPLWechatSDK',
-                'Content-Length: ' . $contentLength,
-            ),
-            $headers
-        );
-        $request->setHeaders($headers);
-        $request->setContent($content);
-        $this->httpClient->send($request, $response);
-        return $response;
-    }
-
-    /**
-     * 构造url
-     * @param  [type] $url        [description]
-     * @param  array  $parameters [description]
-     * @return [type]             [description]
-     */
-    public function normalizeUrl($url, array $parameters = array())
-    {
-        $normalizedUrl = $url;
-        if (!empty($parameters)) {
-            $normalizedUrl .= (false !== strpos($url, '?') ? '&' : '?').http_build_query($parameters, '', '&');
-        }
-        return $normalizedUrl;
-    }
+    
 
     /**
      * Get the 'parsed' content based on the response headers.
@@ -273,10 +256,9 @@ class Wechat
      *
      * @return array
      */
-    public function getResponseContent(HttpMessageInterface $rawResponse)
+    public function getResponseContent(ResponseInterface $response)
     {
-        // First check that content in response exists, due too bug: https://bugs.php.net/bug.php?id=54484
-        $content = $rawResponse->getContent();
+        $content = $response->getBody()->getContents();
         if (!$content) {
             return array();
         }
@@ -366,9 +348,7 @@ class Wechat
      */
     public function getMenu()
     {
-        $response = $this->request(self::API_URL . '/menu/get');
-        $menu = $this->getResponseContent($response);
-        return $menu;
+        return $this->request(self::API_URL . '/menu/get');
     }
 
     /**
@@ -408,9 +388,7 @@ class Wechat
         if(is_array($menu)){
             $menu = json_encode($menu);
         }
-        $response = $this->request(self::API_URL . '/menu/create', array(), $menu);
-        $result = $this->getResponseContent($response);
-        return $result;
+        return $this->request(self::API_URL . '/menu/create', array(), $menu);
     }
 
     /**
@@ -419,9 +397,7 @@ class Wechat
      */
     public function deleteMenu()
     {
-        $response = $this->request(self::API_URL . '/menu/delete');
-        $result = $this->getResponseContent($response);
-        return $result;
+        return $this->request(self::API_URL . '/menu/delete');
     }
 
     //// 临时素材接口
@@ -430,24 +406,23 @@ class Wechat
      * 上传临时素材
      * @param  string $file        文件名
      * @param  string $type        类型 image video 等
-     * @param  string $fileName    文件名
-     * @param  string $contentType 文件类型
      * @return Array             返回结果
      *
      * {"type":"TYPE","media_id":"MEDIA_ID","created_at":123456789}
      */
-    public function uploadMedia($file, $type, $fileName = '', $contentType = null)
+    public function uploadMedia($file, $type)
     {
-        $uploadFile = new FormUpload($file, $contentType);
-        if($fileName){
-            $uploadFile->setFilename($fileName);
-        }
-        $fields = array();
-        $fields['media'] = $uploadFile;
-        $fields['type'] = $type;
-        $response = $this->upload(self::API_URL . '/media/upload', array(), $fields);
-        $result = $this->getResponseContent($response);
-        return $result;
+        $files = [
+            [
+                'name'     => 'media',
+                'contents' => fopen($file, 'r')
+            ],
+            [
+                'name' => 'type',
+                'contents' => $type
+            ]
+        ];
+        return $this->request(self::API_URL . '/media/upload', array(), null, $files);
     }
 
     /**
@@ -464,7 +439,7 @@ class Wechat
         else{
             $baseUrl = self::API_HTTP_URL;
         }
-        $response = $this->request($baseUrl . '/media/get', array('media_id' => $mediaId));
+        $response = $this->rawRequest($baseUrl . '/media/get', array('media_id' => $mediaId));
         return $response;
     }
 
@@ -481,12 +456,13 @@ class Wechat
      */
     public function uploadImg($image)
     {
-        $uploadFile = new FormUpload($image);
-        $fields = array();
-        $fields['media'] = $uploadFile;
-        $response = $this->upload(self::API_URL . '/media/uploadimg', array(), $fields);
-        $result = $this->getResponseContent($response);
-        return $result;
+        $files = [
+            [
+                'name'     => 'media',
+                'contents' => fopen($image, 'r')
+            ],
+        ];
+        return $this->request(self::API_URL . '/media/uploadimg', array(), null, $files);
     }
 
     /**
@@ -501,24 +477,29 @@ class Wechat
           "url":URL
         }
      */
-    public function addMaterial($file, $type, $options = array(), $fileName = '', $contentType = null)
+    public function addMaterial($file, $type, $options = array())
     {
-        $uploadFile = new FormUpload($file, $contentType);
-        if($fileName){
-            $uploadFile->setFilename($fileName);
-        }
-        $fields = array();
-        $fields['media'] = $uploadFile;
-        $fields['type'] = $type;
+
+        $files = [
+            [
+                'name'     => 'media',
+                'contents' => fopen($file, 'r')
+            ],
+            [
+                'name' => 'type',
+                'contents' => $type
+            ]
+        ];
         if($type == 'video'){
             $description = array();
             $description['title'] = isset($options['title']) ? $options['title'] : '';
             $description['introduction'] = isset($options['introduction']) ? $options['introduction'] : '';
-            $fields['description'] = json_encode($description);
+            $files[] = array(
+                'name' => 'description',
+                'contents' => json_encode($description)
+            );
         }
-        $response = $this->upload(self::API_URL . '/material/add_material', array(), $fields);
-        $result = $this->getResponseContent($response);
-        return $result;
+        return $this->request(self::API_URL . '/material/add_material', array(), null, $files);
     }
 
     public function addNews($articles)
@@ -526,20 +507,16 @@ class Wechat
         if(is_array($articles)){
             $articles = json_encode($articles);
         }
-        $response = $this->request(self::API_URL . '/material/add_news', array(), $articles);
-        $result = $this->getResponseContent($response);
-        return $result;
+        return $this->request(self::API_URL . '/material/add_news', array(), $articles);
     }
 
     // 获取用户信息
     public function getUserInfo($openid, $lang='zh_CN')
     {
-        $response = $this->request(self::API_URL . '/user/info', array(
+        return $this->request(self::API_URL . '/user/info', array(
             'lang'=>$lang,
             'openid' => $openid,
             ));
-        $result = $this->getResponseContent($response);
-        return $result;
     }
 
 }

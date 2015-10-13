@@ -11,7 +11,7 @@ Yet Another WechatSDK !
 与其他微信SDK有点区别的是，没有对具体功能进行实现，因为Symfony2（或者你的框架）在这方面
 更在行。
 
-此SDK依赖于 kriswallsmith/buzz 库，一个优秀的HTTP Client库。
+此SDK依赖于 guzzle/guzzle 库，一个优秀的HTTP Client库。
 
 用法
 -----
@@ -22,9 +22,9 @@ Yet Another WechatSDK !
     use YPL\WechatSDK\Wechat;
     use YPL\WechatSDK\Model\MessageManager;
     use YPL\WechatSDK\Model\Response\TextResponse;
-    use Buzz\Client\Curl;
+    use GuzzleHttp\Client;
     
-    $httpClient = new Curl();
+    $httpClient = new Client();
     $wechat = new Wechat($httpClient, array(
         'appid' => '%appid%',
         'appsecret' => '%appsecret%',
