@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the HWIOAuthBundle package.
+ * This file is part of the Wetchat SDK package.
  *
  * (c) yplam <yplam@yplam.com>
  *

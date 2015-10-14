@@ -1,7 +1,7 @@
 <?php
 
 /*
- * This file is part of the yplamWechatBundle package.
+ * This file is part of the YPL\WechatSDK package.
  *
  * (c) yplam <yplam@yplam.com>
  *
@@ -15,7 +15,6 @@ use GuzzleHttp\Client;
 use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
 
-use YPL\WechatSDK\Event\MessageEvent;
 use YPL\WechatSDK\Exception\WechatException;
 
 class Wechat
@@ -198,7 +197,10 @@ class Wechat
         return $this->getResponseContent($response);
     }
 
-
+    /**
+     * 以数组的形式获取微信服务器发送的Message
+     * @return array rawMessage
+     */
     public function getRawMessage()
     {
         $signature = isset($_GET['msg_signature']) ? $_GET['msg_signature']
@@ -250,11 +252,7 @@ class Wechat
     
 
     /**
-     * Get the 'parsed' content based on the response headers.
-     *
-     * @param HttpMessageInterface $rawResponse
-     *
-     * @return array
+     * 将HttpClient返回的Response解码，返回数组
      */
     public function getResponseContent(ResponseInterface $response)
     {

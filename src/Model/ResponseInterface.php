@@ -1,6 +1,6 @@
 <?php
 /*
- * This file is part of the HWIOAuthBundle package.
+ * This file is part of the Wechat SDK package.
  *
  * (c) yplam <yplam@yplam.com>
  *
@@ -11,6 +11,9 @@ namespace YPL\WechatSDK\Model;
 
 interface ResponseInterface
 {
+    /**
+     * 返回数组格式的Response结构
+     */
     public function getRawResponse();
 }
 
